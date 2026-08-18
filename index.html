@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Creature LIVE – TikTok Overlay V2</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --panel: #14141f;
+      --accent: #7c5cff;
+      --accent2: #ff6b9d;
+      --text: #f0f0ff;
+      --muted: #8888aa;
+      --ice: #a8e6ff;
+      --shadow: #9b6bff;
+      --fire: #ff6b4a;
+      --spirit: #e8f0ff;
+      --golden: #ffd700;
+      --success: #4ade80;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body.overlay {
+      background: transparent !important;
+    }
+    body.overlay .control-panel,
+    body.overlay .header,
+    body.overlay .sim-section,
+    body.overlay .tikfinity-section,
+    body.overlay .footer,
+    body.overlay .panel-card {
+      display: none !important;
+    }
+    body.overlay .stage-area {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      min-height: auto;
+      padding: 0.5rem;
+    }
+    body.overlay .creature-display {
+      filter: drop-shadow(0 0 18px rgba(0,0,0,0.7));
+    }
+    body.overlay .xp-section,
+    body.overlay .stats-row,
+    body.overlay .creature-label {
+      text-shadow: 0 1px 4px #000, 0 0 8px #000;
+    }
+
+    .header {
+      text-align: center;
+      padding: 1.2rem 1rem 0.5rem;
+      border-bottom: 1px solid #222233;
+    }
+    .header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      background: linear-gradient(90deg, var(--ice), var(--shadow), var(--fire));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .header p {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 0.3rem;
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 1.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; }
+    }
+
+    .stage-area {
+      background: var(--panel);
+      border-radius: 16px;
+      border: 1px solid #2a2a3a;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 520px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .creature-label {
+      font-size: 0.9rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 0.4rem;
+    }
+
+    .stage-name {
+      font-size: 1.55rem;
+      font-weight: 700;
+      margin-bottom: 0.8rem;
+      text-shadow: 0 0 24px currentColor;
+      transition: color 0.4s ease;
+    }
+
+    .creature-display {
+      width: 320px;
+      height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin: 0.3rem 0 1.2rem;
+    }
+
+    .creature-img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      transition: all 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+      filter: drop-shadow(0 10px 28px rgba(0,0,0,0.55));
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .creature-img.pulse { animation: pulse 0.65s ease; }
+    .creature-img.glow { animation: glow 1.3s ease; }
+    .creature-img.evolve { animation: evolve 1.6s ease; }
+    .creature-img.hatch { animation: hatch 1.8s ease; }
+    .creature-img.crack { animation: crack 1.1s ease; }
+    .creature-img.wiggle { animation: wiggle 0.9s ease; }
+    .creature-img.shine { animation: shine 1.1s ease; }
+    .creature-img.play { animation: play 1.2s ease; }
+    .creature-img.pounce { animation: pounce 1.0s ease; }
+    .creature-img.fly { animation: fly 1.3s ease; }
+    .creature-img.bright { animation: bright 1.4s ease; }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      40% { transform: scale(1.12); }
+      70% { transform: scale(0.97); }
+    }
+    @keyframes glow {
+      0%, 100% { filter: drop-shadow(0 10px 28px rgba(0,0,0,0.55)); }
+      50% { filter: drop-shadow(0 0 48px currentColor) brightness(1.25) saturate(1.3); }
+    }
+    @keyframes evolve {
+      0%   { transform: scale(1) rotate(0deg); opacity: 1; filter: brightness(1); }
+      25%  { transform: scale(0.25) rotate(90deg); opacity: 0.4; filter: brightness(2); }
+      50%  { transform: scale(1.35) rotate(200deg); opacity: 0.7; filter: brightness(1.6); }
+      75%  { transform: scale(0.9) rotate(320deg); opacity: 0.9; }
+      100% { transform: scale(1) rotate(360deg); opacity: 1; filter: brightness(1); }
+    }
+    @keyframes hatch {
+      0%   { transform: scale(0.6) translateY(20px); opacity: 0.3; filter: brightness(2); }
+      30%  { transform: scale(1.15) translateY(-8px); opacity: 0.9; }
+      50%  { transform: scale(0.95) translateY(4px); }
+      70%  { transform: scale(1.08) translateY(-3px); }
+      100% { transform: scale(1) translateY(0); opacity: 1; filter: brightness(1); }
+    }
+    @keyframes crack {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      15% { transform: scale(1.05) rotate(-4deg); }
+      30% { transform: scale(0.97) rotate(5deg); }
+      45% { transform: scale(1.08) rotate(-3deg); }
+      60% { transform: scale(0.95) rotate(4deg); }
+      80% { transform: scale(1.03) rotate(-2deg); }
+    }
+    /* 1–99 : small reaction */
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(0deg) scale(1); }
+      15% { transform: rotate(-6deg) scale(1.04); }
+      30% { transform: rotate(7deg) scale(1.02); }
+      45% { transform: rotate(-5deg) scale(1.05); }
+      60% { transform: rotate(4deg) scale(1.01); }
+      80% { transform: rotate(-2deg) scale(1.03); }
+    }
+    @keyframes shine {
+      0%, 100% { filter: drop-shadow(0 10px 28px rgba(0,0,0,0.55)) brightness(1); }
+      40% { filter: drop-shadow(0 0 36px #fff) brightness(1.35) saturate(1.2); }
+      70% { filter: drop-shadow(0 0 20px currentColor) brightness(1.15); }
+    }
+    /* 100–199 : play */
+    @keyframes play {
+      0%, 100% { transform: scale(1) translateY(0); }
+      20% { transform: scale(1.08) translateY(-12px) rotate(-3deg); }
+      40% { transform: scale(0.96) translateY(4px) rotate(3deg); }
+      60% { transform: scale(1.06) translateY(-8px) rotate(-2deg); }
+      80% { transform: scale(1.02) translateY(2px); }
+    }
+    @keyframes pounce {
+      0% { transform: scale(1) translateY(0); }
+      30% { transform: scale(1.1) translateY(-28px); }
+      55% { transform: scale(0.92) translateY(6px); }
+      75% { transform: scale(1.05) translateY(-8px); }
+      100% { transform: scale(1) translateY(0); }
+    }
+    @keyframes fly {
+      0%, 100% { transform: scale(1) translateY(0) rotate(0deg); }
+      25% { transform: scale(1.05) translateY(-35px) rotate(-4deg); }
+      50% { transform: scale(1.08) translateY(-18px) rotate(3deg); }
+      75% { transform: scale(1.03) translateY(-28px) rotate(-2deg); }
+    }
+    /* 200–499 : food / love */
+    @keyframes bright {
+      0%, 100% { filter: drop-shadow(0 10px 28px rgba(0,0,0,0.55)) brightness(1); }
+      30% { filter: drop-shadow(0 0 55px #ff6b9d) brightness(1.45) saturate(1.4); }
+      60% { filter: drop-shadow(0 0 40px #ffd700) brightness(1.3); }
+    }
+
+    .particles {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .particle {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #fff;
+      opacity: 0;
+      animation: particleFly 1.4s ease-out forwards;
+    }
+    @keyframes particleFly {
+      0% { opacity: 1; transform: translate(0,0) scale(1); }
+      100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.2); }
+    }
+
+    /* Floating toys / hearts / fire – longer visibility (~3s) */
+    .float-item {
+      position: absolute;
+      font-size: 2.2rem;
+      pointer-events: none;
+      z-index: 5;
+      animation: floatUp 2.8s ease-out forwards;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+    }
+    @keyframes floatUp {
+      0%   { opacity: 0; transform: translateY(20px) scale(0.5); }
+      12%  { opacity: 1; transform: translateY(0) scale(1.15); }
+      55%  { opacity: 1; transform: translateY(-35px) scale(1); }
+      100% { opacity: 0; transform: translateY(-90px) scale(0.65); }
+    }
+    .float-item.heart {
+      font-size: 1.6rem;
+      animation: heartFloat 3.0s ease-out forwards;
+    }
+    @keyframes heartFloat {
+      0%   { opacity: 0; transform: translateY(10px) scale(0.4) rotate(-10deg); }
+      15%  { opacity: 1; transform: translateY(-12px) scale(1.2) rotate(8deg); }
+      50%  { opacity: 1; transform: translateY(-45px) scale(1) rotate(-5deg); }
+      100% { opacity: 0; transform: translateY(-100px) scale(0.55) rotate(10deg); }
+    }
+
+    .xp-section {
+      width: 100%;
+      max-width: 320px;
+    }
+    .xp-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+    .xp-bar-bg {
+      height: 12px;
+      background: #1a1a2a;
+      border-radius: 99px;
+      overflow: hidden;
+      border: 1px solid #333;
+    }
+    .xp-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 99px;
+      transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+      box-shadow: 0 0 14px rgba(124, 92, 255, 0.55);
+    }
+
+    .stats-row {
+      display: flex;
+      gap: 1.4rem;
+      margin-top: 1.1rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .stats-row strong { color: var(--text); }
+
+    .control-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .panel-card {
+      background: var(--panel);
+      border-radius: 12px;
+      border: 1px solid #2a2a3a;
+      padding: 1rem 1.1rem;
+    }
+    .panel-card h3 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 0.7rem;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      padding: 0.45rem 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      background: #2a2a3a;
+      color: var(--text);
+    }
+    button:hover {
+      background: #3a3a4a;
+      transform: translateY(-1px);
+    }
+    button:active { transform: translateY(0); }
+
+    button.primary {
+      background: linear-gradient(135deg, var(--accent), #5a3fff);
+      color: white;
+    }
+    button.primary:hover { filter: brightness(1.15); }
+
+    button.danger {
+      background: #3a1a1a;
+      color: #ff8a8a;
+    }
+    button.danger:hover { background: #4a2222; }
+
+    button.success {
+      background: #1a3a2a;
+      color: var(--success);
+    }
+
+    .select-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .select-group label {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    select {
+      background: #1a1a2a;
+      color: var(--text);
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 0.45rem 0.6rem;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    select:focus { border-color: var(--accent); }
+
+    input[type="text"] {
+      background: #1a1a2a;
+      color: var(--text);
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 0.45rem 0.6rem;
+      font-size: 0.85rem;
+      width: 100%;
+      outline: none;
+    }
+    input:focus { border-color: var(--accent); }
+
+    .ws-status {
+      font-size: 0.75rem;
+      margin-top: 0.4rem;
+      padding: 0.3rem 0.5rem;
+      border-radius: 6px;
+      display: inline-block;
+    }
+    .ws-status.connected { background: #1a3a2a; color: var(--success); }
+    .ws-status.disconnected { background: #2a2a1a; color: #ffcc66; }
+    .ws-status.error { background: #3a1a1a; color: #ff8a8a; }
+    .ws-status.connecting { background: #1a2a3a; color: #88ccff; }
+
+    .log-box {
+      background: #0d0d14;
+      border-radius: 8px;
+      padding: 0.6rem;
+      font-size: 0.72rem;
+      font-family: ui-monospace, monospace;
+      max-height: 130px;
+      overflow-y: auto;
+      color: #aaaacc;
+      line-height: 1.4;
+    }
+    .log-box .log-gift { color: #ffd700; }
+    .log-box .log-evolve { color: #4ade80; }
+    .log-box .log-info { color: #88aaff; }
+
+    .overlay-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+    }
+    .overlay-toggle input { width: 18px; height: 18px; accent-color: var(--accent); }
+
+    .footer {
+      text-align: center;
+      padding: 1rem;
+      color: var(--muted);
+      font-size: 0.75rem;
+      border-top: 1px solid #222233;
+      margin-top: 1rem;
+    }
+
+    .line-ice .stage-name { color: var(--ice); }
+    .line-shadow .stage-name { color: var(--shadow); }
+    .line-fire .stage-name { color: var(--fire); }
+    .line-spirit .stage-name { color: var(--spirit); }
+    .line-wolf-shadow .stage-name { color: var(--shadow); }
+    .line-golden .stage-name { color: var(--golden); }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>✨ Creature LIVE</h1>
+    <p>TikTok Overlay • Real Artwork • Hatch & Evolution Animations • V2</p>
+  </div>
+
+  <div class="main">
+    <div style="position:relative; min-height:520px;">
+      <div id="waitingMsg" style="display:none; text-align:center; padding:4rem 1rem; color:#666; font-size:1.1rem;">
+        Waiting for a viewer…<br>
+        <span style="font-size:0.85rem; color:#555;">Creature appears when someone gifts / likes / chats</span>
+      </div>
+      <div class="stage-area" id="stageArea" style="transition: opacity 0.5s ease;">
+        <div style="font-size:0.75rem; color:#aaa; margin-bottom:0.3rem;" id="viewerName">@Host</div>
+        <div class="creature-label" id="creatureLabel">ICE DRAGON</div>
+        <div class="stage-name" id="stageName">Egg</div>
+
+        <div class="creature-display" id="creatureDisplay">
+          <img class="creature-img" id="creatureImg" src="assets/egg_ice.png" alt="creature" />
+          <div class="particles" id="particles"></div>
+        </div>
+
+        <div class="xp-section">
+          <div class="xp-label">
+            <span>XP</span>
+            <span id="xpText">0 / 1 000</span>
+          </div>
+          <div class="xp-bar-bg">
+            <div class="xp-bar-fill" id="xpBar" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div class="stats-row">
+          <div>💎 <strong id="statDiamonds">0</strong></div>
+          <div>❤️ <strong id="statLikes">0</strong></div>
+          <div>➕ <strong id="statFollows">0</strong></div>
+          <div>🔁 <strong id="statShares">0</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="control-panel">
+      <div class="panel-card">
+        <h3>Creature</h3>
+        <div class="select-group">
+          <label>Type</label>
+          <select id="creatureType">
+            <option value="dragon">Dragon</option>
+            <option value="wolf">Wolf</option>
+          </select>
+        </div>
+        <div class="select-group" style="margin-top:0.5rem">
+          <label>Line</label>
+          <select id="creatureLine"></select>
+        </div>
+      </div>
+
+      <div class="panel-card sim-section">
+        <h3>Gift Simulation (Diamonds)</h3>
+        <div class="btn-row">
+          <button onclick="addGift(3)" title="1–9: soft shimmer">3</button>
+          <button onclick="addGift(9)" title="1–9: soft shimmer">9</button>
+          <button onclick="addGift(25)" title="10–99: wiggle / shine">25</button>
+          <button onclick="addGift(75)" title="10–99: wiggle / shine">75</button>
+          <button onclick="addGift(120)" title="100–199: play + toy">120</button>
+          <button onclick="addGift(180)" title="100–199: play + toy">180</button>
+          <button onclick="addGift(300)" title="200–499: food + hearts">300</button>
+          <button onclick="addGift(450)" title="200–499: food + hearts">450</button>
+          <button onclick="addGift(500)">500</button>
+          <button onclick="addGift(1000)" class="primary">1 000</button>
+        </div>
+        <div class="btn-row" style="margin-top:0.5rem">
+          <button onclick="addLike()">❤️ Like</button>
+          <button onclick="addFollow()">➕ Follow</button>
+          <button onclick="addShare()">🔁 Share</button>
+        </div>
+      </div>
+
+      <div class="panel-card">
+        <h3>Manual Controls</h3>
+        <div class="btn-row">
+          <button onclick="addXP(100)" class="success">+100 XP</button>
+          <button onclick="forceHatch()">Hatch</button>
+          <button onclick="forceEvolve()">Next Stage</button>
+          <button onclick="resetAll()" class="danger">Reset</button>
+        </div>
+        <div class="btn-row" style="margin-top:0.5rem">
+          <button onclick="simJoin()" class="primary">Simulate Viewer Join</button>
+          <button onclick="hideCreature()">Hide Now</button>
+        </div>
+        <div class="select-group" style="margin-top:0.5rem">
+          <label>Test as username</label>
+          <input type="text" id="simUsername" placeholder="e.g. coolviewer99" value="TestViewer" />
+        </div>
+      </div>
+
+      <div class="panel-card">
+        <h3>Saved Viewers (across streams)</h3>
+        <div id="viewerList" class="log-box" style="max-height:160px;"></div>
+      </div>
+
+      <div class="panel-card tikfinity-section">
+        <h3>TikFinity WebSocket</h3>
+        <input type="text" id="wsUrl" placeholder="ws://127.0.0.1:xxxx/..." />
+        <div class="btn-row" style="margin-top:0.5rem">
+          <button onclick="connectWS()" class="primary">Connect</button>
+          <button onclick="disconnectWS()">Disconnect</button>
+        </div>
+        <div class="ws-status disconnected" id="wsStatus">Disconnected</div>
+      </div>
+
+      <div class="panel-card">
+        <h3>Display</h3>
+        <label class="overlay-toggle">
+          <input type="checkbox" id="overlayToggle" onchange="toggleOverlay()" />
+          Transparent Overlay Mode (OBS / TikTok LIVE Studio)
+        </label>
+        <label class="overlay-toggle" style="margin-top:0.6rem">
+          <input type="checkbox" id="soundToggle" checked onchange="Sound.enabled = this.checked" />
+          Sound effects
+        </label>
+      </div>
+
+      <div class="panel-card">
+        <h3>Event Log</h3>
+        <div class="log-box" id="logBox"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Creature LIVE V2 • Real artwork from your reference • Hatch & Evolution animations • Progress auto-saved
+  </div>
+
+  <script>
+    const XP_THRESHOLDS = [0, 1000, 5000, 15000, 30000, 50000];
+    const STAGE_NAMES = {
+      dragon: ['Egg', 'Hatchling', 'Young', 'Adult', 'Ancient', 'Legendary'],
+      wolf:   ['Egg', 'Pup', 'Young', 'Adult', 'Alpha', 'Legendary']
+    };
+
+    const ASSETS = {
+      dragon: {
+        ice: {
+          egg: 'assets/egg_ice.png',
+          stages: [
+            'assets/dragon_ice_1.png',
+            'assets/dragon_ice_2.png',
+            'assets/dragon_ice_3.png',
+            'assets/dragon_ice_4.png',
+            'assets/dragon_ice_5.png'
+          ]
+        },
+        shadow: {
+          egg: 'assets/egg_shadow2.png',
+          stages: [
+            'assets/dragon_shadow_1.png',
+            'assets/dragon_shadow_2.png',
+            'assets/dragon_shadow_3.png',
+            'assets/dragon_shadow_4.png',
+            'assets/dragon_shadow_5.png'
+          ]
+        },
+        fire: {
+          egg: 'assets/egg_fire.png',
+          stages: [
+            'assets/dragon_fire_0.png',
+            'assets/dragon_fire_1.png',
+            'assets/dragon_fire_2.png',
+            'assets/dragon_fire_3.png',
+            'assets/dragon_fire_4.png'
+          ]
+        }
+      },
+      wolf: {
+        spirit: {
+          egg: 'assets/egg_ice.png',
+          stages: [
+            'assets/wolf_spirit_1.png',
+            'assets/wolf_spirit_2.png',
+            'assets/wolf_spirit_3.png',
+            'assets/wolf_spirit_4.png',
+            'assets/wolf_spirit_5.png'
+          ]
+        },
+        shadow: {
+          egg: 'assets/egg_shadow1.png',
+          stages: [
+            'assets/wolf_shadow_1.png',
+            'assets/wolf_shadow_2.png',
+            'assets/wolf_shadow_3.png',
+            'assets/wolf_shadow_4.png',
+            'assets/wolf_shadow_5.png'
+          ]
+        },
+        golden: {
+          egg: 'assets/egg_gold.png',
+          stages: [
+            'assets/wolf_golden_1.png',
+            'assets/wolf_golden_2.png',
+            'assets/wolf_golden_3.png',
+            'assets/wolf_golden_4.png',
+            'assets/wolf_golden_5.png'
+          ]
+        }
+      }
+    };
+
+    const LINE_COLORS = {
+      ice: 'line-ice',
+      shadow: 'line-shadow',
+      fire: 'line-fire',
+      spirit: 'line-spirit',
+      'wolf-shadow': 'line-wolf-shadow',
+      golden: 'line-golden'
+    };
+
+    // Multi-viewer creature system
+    // Each unique username gets their own creature that persists across streams.
+    // Creature appears while the viewer is active, hides when they leave / go idle.
+    const INACTIVITY_MS = 5 * 60 * 1000; // hide after 5 minutes of no activity (editable)
+    let creatures = {};          // username -> creature data
+    let currentUser = null;      // who is currently shown on screen
+    let hideTimer = null;
+    let visible = false;         // is the creature currently shown?
+
+    function newCreature(username) {
+      return {
+        username: username,
+        type: 'dragon',
+        line: 'ice',
+        xp: 0,
+        stageIndex: 0,
+        diamonds: 0,
+        likes: 0,
+        follows: 0,
+        shares: 0,
+        lastActive: Date.now()
+      };
+    }
+
+    // `state` always points at the current viewer's creature object
+    let state = newCreature('Host');
+
+    let ws = null;
+
+    // Activate (or create) a viewer's creature and show it
+    function activateUser(username) {
+      if (!username || username === '(none)') return;
+      username = String(username).trim();
+      if (!username) return;
+
+      if (!creatures[username]) {
+        creatures[username] = newCreature(username);
+        log('info', 'New creature started for @' + username);
+      }
+
+      creatures[username].lastActive = Date.now();
+      currentUser = username;
+      state = creatures[username];
+      visible = true;
+      showCreature();
+      resetHideTimer();
+      saveState();
+      populateLines();
+      render();
+      updateViewerList();
+    }
+
+    function showCreature() {
+      const area = document.getElementById('stageArea');
+      if (area) {
+        area.style.opacity = '1';
+        area.style.pointerEvents = 'auto';
+      }
+      const waiting = document.getElementById('waitingMsg');
+      if (waiting) waiting.style.display = 'none';
+      visible = true;
+    }
+
+    function hideCreature() {
+      const area = document.getElementById('stageArea');
+      if (area) {
+        area.style.opacity = '0';
+        area.style.pointerEvents = 'none';
+      }
+      const waiting = document.getElementById('waitingMsg');
+      if (waiting) waiting.style.display = 'block';
+      visible = false;
+      currentUser = null;
+      log('info', 'Creature hidden (viewer inactive). Progress is saved.');
+      updateViewerList();
+    }
+
+    function resetHideTimer() {
+      if (hideTimer) clearTimeout(hideTimer);
+      hideTimer = setTimeout(() => {
+        if (visible) hideCreature();
+      }, INACTIVITY_MS);
+    }
+
+    // ============================================================
+    // SOUND ENGINE (Web Audio API – no external files)
+    // ============================================================
+    const Sound = {
+      ctx: null,
+      enabled: true,
+
+      init() {
+        if (this.ctx) return;
+        try {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+          this.enabled = false;
+        }
+      },
+
+      // Resume on first user gesture (browser autoplay policy)
+      resume() {
+        this.init();
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      },
+
+      playTone(freq, duration, type = 'sine', volume = 0.18, slideTo = null) {
+        if (!this.enabled) return;
+        this.resume();
+        if (!this.ctx) return;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        if (slideTo) {
+          osc.frequency.exponentialRampToValueAtTime(slideTo, this.ctx.currentTime + duration * 0.9);
+        }
+        gain.gain.setValueAtTime(0, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(volume, this.ctx.currentTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration + 0.05);
+      },
+
+      // Soft shimmer for 1–9
+      tiny() {
+        this.playTone(880, 0.12, 'sine', 0.08);
+        setTimeout(() => this.playTone(1320, 0.1, 'sine', 0.05), 40);
+      },
+
+      // Wiggle / shine 10–99
+      small() {
+        this.playTone(523, 0.1, 'triangle', 0.12);
+        setTimeout(() => this.playTone(659, 0.12, 'triangle', 0.1), 70);
+      },
+
+      // Play + toy 100–199
+      play() {
+        this.playTone(392, 0.08, 'square', 0.07);
+        setTimeout(() => this.playTone(523, 0.1, 'square', 0.08), 60);
+        setTimeout(() => this.playTone(659, 0.14, 'triangle', 0.1), 140);
+      },
+
+      // Food + hearts 200–499
+      food() {
+        this.playTone(587, 0.15, 'sine', 0.12);
+        setTimeout(() => this.playTone(740, 0.18, 'sine', 0.1), 90);
+        setTimeout(() => this.playTone(880, 0.22, 'triangle', 0.09), 200);
+      },
+
+      // 500+ crack / strong
+      strong() {
+        this.playTone(200, 0.15, 'sawtooth', 0.1, 80);
+        setTimeout(() => this.playTone(600, 0.2, 'triangle', 0.12), 100);
+        setTimeout(() => this.playTone(900, 0.25, 'sine', 0.08), 220);
+      },
+
+      // 1000+ celebration
+      big() {
+        const notes = [523, 659, 784, 1047];
+        notes.forEach((n, i) => {
+          setTimeout(() => this.playTone(n, 0.22, 'triangle', 0.11), i * 90);
+        });
+      },
+
+      // Hatch
+      hatch() {
+        this.playTone(300, 0.2, 'sawtooth', 0.08, 150);
+        setTimeout(() => this.playTone(600, 0.15, 'triangle', 0.12), 150);
+        setTimeout(() => this.playTone(900, 0.3, 'sine', 0.1), 280);
+        setTimeout(() => this.playTone(1200, 0.35, 'sine', 0.07), 400);
+      },
+
+      // Evolution
+      evolve() {
+        this.playTone(400, 0.25, 'sawtooth', 0.09, 200);
+        setTimeout(() => this.playTone(600, 0.2, 'triangle', 0.11), 180);
+        setTimeout(() => this.playTone(800, 0.25, 'sine', 0.1), 320);
+        setTimeout(() => this.playTone(1000, 0.4, 'sine', 0.08), 480);
+      }
+    };
+
+    function init() {
+      loadState();
+      // Start hidden until someone interacts
+      hideCreature();
+      populateLines();
+      render(true);
+      updateViewerList();
+      log('info', 'Creature LIVE V2 – per-viewer progress. Creatures appear when viewers interact and hide after inactivity. Progress saves across streams.');
+      document.body.addEventListener('click', () => Sound.resume(), { once: true });
+    }
+
+    function populateLines() {
+      const sel = document.getElementById('creatureLine');
+      sel.innerHTML = '';
+      const lines = state.type === 'dragon'
+        ? [
+            { value: 'ice', label: 'Ice' },
+            { value: 'shadow', label: 'Shadow' },
+            { value: 'fire', label: 'Fire' }
+          ]
+        : [
+            { value: 'spirit', label: 'Spirit' },
+            { value: 'shadow', label: 'Shadow' },
+            { value: 'golden', label: 'Golden' }
+          ];
+      lines.forEach(l => {
+        const opt = document.createElement('option');
+        opt.value = l.value;
+        opt.textContent = l.label;
+        if (l.value === state.line) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    }
+
+    document.getElementById('creatureType').addEventListener('change', e => {
+      state.type = e.target.value;
+      state.line = state.type === 'dragon' ? 'ice' : 'spirit';
+      populateLines();
+      updateStageFromXP(false);
+      saveState();
+      render(true);
+    });
+
+    document.getElementById('creatureLine').addEventListener('change', e => {
+      state.line = e.target.value;
+      saveState();
+      render(true);
+    });
+
+    function updateStageFromXP(animate = true) {
+      let newIndex = 0;
+      for (let i = XP_THRESHOLDS.length - 1; i >= 0; i--) {
+        if (state.xp >= XP_THRESHOLDS[i]) {
+          newIndex = i;
+          break;
+        }
+      }
+
+      if (newIndex !== state.stageIndex) {
+        const oldName = STAGE_NAMES[state.type][state.stageIndex];
+        const wasEgg = state.stageIndex === 0;
+        state.stageIndex = newIndex;
+        const newName = STAGE_NAMES[state.type][state.stageIndex];
+
+        if (animate) {
+          if (wasEgg && newIndex === 1) {
+            triggerAnim('hatch');
+            spawnParticles(18);
+            Sound.hatch();
+            log('evolve', '🥚 Hatched! → ' + newName);
+          } else {
+            triggerAnim('evolve');
+            spawnParticles(12);
+            Sound.evolve();
+            log('evolve', 'Evolution! ' + oldName + ' → ' + newName);
+          }
+        }
+      }
+    }
+
+    function addXP(amount, animate = true) {
+      state.xp += amount;
+      updateStageFromXP(animate);
+      saveState();
+      render();
+      if (animate) triggerAnim('pulse');
+    }
+
+    function addGift(diamonds) {
+      // If no one is active, use the test username so simulation still works
+      if (!currentUser || !visible) {
+        const name = (document.getElementById('simUsername')?.value || 'Host').trim() || 'Host';
+        activateUser(name);
+      }
+      state.diamonds += diamonds;
+      addXP(diamonds, false); // visual reaction handled below
+      log('gift', '+' + diamonds + ' diamonds → +' + diamonds + ' XP');
+      resetHideTimer();
+
+      // ========== GIFT REACTION TIERS ==========
+      //   1–9   : tiny soft shimmer / gentle nod (very subtle)
+      //  10–99  : wiggle / shine
+      // 100–199 : play + toy appears
+      // 200–499 : food + hearts + brighter glow
+      // 500–999 : crack (egg) or strong glow
+      // 1000+   : big glow + particles + hearts
+
+      if (diamonds >= 1000) {
+        triggerAnim('glow');
+        spawnParticles(22);
+        spawnHearts(6);
+        Sound.big();
+      } else if (diamonds >= 500) {
+        if (state.stageIndex === 0) {
+          triggerAnim('crack');
+        } else {
+          triggerAnim('bright');
+        }
+        spawnParticles(12);
+        spawnHearts(4);
+        Sound.strong();
+      } else if (diamonds >= 200) {
+        // Food / love tier
+        triggerAnim('bright');
+        spawnHearts(8);
+        spawnFloatItem(pickFoodEmoji());
+        spawnParticles(6);
+        Sound.food();
+      } else if (diamonds >= 100) {
+        // Play tier
+        const playAnims = ['play', 'pounce', 'fly'];
+        const anim = playAnims[Math.floor(Math.random() * playAnims.length)];
+        triggerAnim(anim);
+        spawnFloatItem(pickToyEmoji());
+        spawnParticles(5);
+        Sound.play();
+      } else if (diamonds >= 10) {
+        // 10–99 : noticeable wiggle / shine
+        const smallAnims = ['wiggle', 'shine', 'pulse'];
+        const anim = smallAnims[Math.floor(Math.random() * smallAnims.length)];
+        triggerAnim(anim);
+        if (Math.random() > 0.45) spawnParticles(3);
+        Sound.small();
+      } else {
+        // 1–9 : very subtle soft shimmer only
+        triggerAnim('shine');
+        Sound.tiny();
+      }
+    }
+
+    function pickToyEmoji() {
+      if (state.type === 'wolf') {
+        return ['🦴', '🎾', '⚽', '🧸', '🥏'][Math.floor(Math.random() * 5)];
+      }
+      return ['🔥', '⚡', '💎', '🧿', '✨'][Math.floor(Math.random() * 5)];
+    }
+
+    function pickFoodEmoji() {
+      if (state.type === 'wolf') {
+        return ['🍖', '🥩', '🍗', '🐟', '🧀'][Math.floor(Math.random() * 5)];
+      }
+      return ['🍖', '🥩', '🍎', '🍇', '🧀'][Math.floor(Math.random() * 5)];
+    }
+
+    function spawnFloatItem(emoji) {
+      const container = document.getElementById('creatureDisplay');
+      const el = document.createElement('div');
+      el.className = 'float-item';
+      el.textContent = emoji;
+      el.style.left = (35 + Math.random() * 30) + '%';
+      el.style.top = (40 + Math.random() * 25) + '%';
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 3000); // match longer animation
+    }
+
+    function spawnHearts(count = 6) {
+      const container = document.getElementById('creatureDisplay');
+      const hearts = ['❤️', '💖', '💗', '💕', '✨'];
+      for (let i = 0; i < count; i++) {
+        const el = document.createElement('div');
+        el.className = 'float-item heart';
+        el.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+        el.style.left = (20 + Math.random() * 60) + '%';
+        el.style.top = (30 + Math.random() * 40) + '%';
+        el.style.animationDelay = (Math.random() * 0.5) + 's';
+        container.appendChild(el);
+        setTimeout(() => el.remove(), 3200); // match longer animation
+      }
+    }
+
+    function addLike() {
+      if (!currentUser || !visible) {
+        const name = (document.getElementById('simUsername')?.value || 'Host').trim() || 'Host';
+        activateUser(name);
+      }
+      state.likes += 1;
+      addXP(5);
+      resetHideTimer();
+      log('info', 'Like received (+5 XP)');
+    }
+    function addFollow() {
+      if (!currentUser || !visible) {
+        const name = (document.getElementById('simUsername')?.value || 'Host').trim() || 'Host';
+        activateUser(name);
+      }
+      state.follows += 1;
+      addXP(25);
+      resetHideTimer();
+      log('info', 'New follower (+25 XP)');
+    }
+    function addShare() {
+      if (!currentUser || !visible) {
+        const name = (document.getElementById('simUsername')?.value || 'Host').trim() || 'Host';
+        activateUser(name);
+      }
+      state.shares += 1;
+      addXP(15);
+      resetHideTimer();
+      log('info', 'Share (+15 XP)');
+    }
+
+    function forceHatch() {
+      if (state.stageIndex === 0) {
+        state.xp = XP_THRESHOLDS[1];
+        updateStageFromXP(true);
+        saveState();
+        render();
+      } else {
+        log('info', 'Already hatched.');
+      }
+    }
+
+    function forceEvolve() {
+      if (state.stageIndex < XP_THRESHOLDS.length - 1) {
+        state.xp = XP_THRESHOLDS[state.stageIndex + 1];
+        updateStageFromXP(true);
+        saveState();
+        render();
+      } else {
+        log('info', 'Already at Legendary stage.');
+      }
+    }
+
+    function resetAll() {
+      if (!currentUser) {
+        log('info', 'No active creature to reset.');
+        return;
+      }
+      if (!confirm('Reset progress for @' + currentUser + '?')) return;
+      state.xp = 0;
+      state.stageIndex = 0;
+      state.diamonds = 0;
+      state.likes = 0;
+      state.follows = 0;
+      state.shares = 0;
+      saveState();
+      render(true);
+      updateViewerList();
+      log('info', 'Progress reset for @' + currentUser);
+    }
+
+    function simJoin() {
+      const name = (document.getElementById('simUsername').value || 'TestViewer').trim();
+      activateUser(name);
+      log('info', 'Simulated join: @' + name);
+    }
+
+    function updateViewerList() {
+      const box = document.getElementById('viewerList');
+      if (!box) return;
+      const names = Object.keys(creatures);
+      if (names.length === 0) {
+        box.innerHTML = '<div style="color:#666">No saved viewers yet</div>';
+        return;
+      }
+      // Sort by last active (newest first)
+      names.sort((a, b) => (creatures[b].lastActive || 0) - (creatures[a].lastActive || 0));
+      box.innerHTML = names.map(u => {
+        const c = creatures[u];
+        const stage = STAGE_NAMES[c.type][c.stageIndex] || '?';
+        const active = (u === currentUser && visible) ? ' ●' : '';
+        return '<div style="cursor:pointer; padding:2px 0;" onclick="activateUser(\'' +
+          u.replace(/'/g, "\\'") + '\')" title="Click to show">' +
+          '@' + u + ' – ' + stage + ' (' + c.xp + ' XP)' + active + '</div>';
+      }).join('');
+    }
+
+    function getAssetPath() {
+      const pack = ASSETS[state.type][state.line];
+      if (state.stageIndex === 0) return pack.egg;
+      return pack.stages[state.stageIndex - 1];
+    }
+
+    function render(silent = false) {
+      const type = state.type;
+      const line = state.line;
+      const idx = state.stageIndex;
+
+      const vn = document.getElementById('viewerName');
+      if (vn) vn.textContent = currentUser ? ('@' + currentUser) : '';
+
+      const lineLabel = line.charAt(0).toUpperCase() + line.slice(1);
+      document.getElementById('creatureLabel').textContent =
+        lineLabel.toUpperCase() + ' ' + type.toUpperCase();
+
+      document.getElementById('stageName').textContent = STAGE_NAMES[type][idx];
+
+      const img = document.getElementById('creatureImg');
+      const newSrc = getAssetPath();
+      if (!img.src.endsWith(newSrc.split('/').pop())) {
+        img.src = newSrc;
+      }
+
+      const currentThreshold = XP_THRESHOLDS[idx];
+      const nextThreshold = XP_THRESHOLDS[idx + 1] || XP_THRESHOLDS[idx];
+      const progress = idx >= XP_THRESHOLDS.length - 1
+        ? 100
+        : Math.min(100, ((state.xp - currentThreshold) / (nextThreshold - currentThreshold)) * 100);
+
+      document.getElementById('xpBar').style.width = progress + '%';
+      document.getElementById('xpText').textContent =
+        idx >= XP_THRESHOLDS.length - 1
+          ? state.xp.toLocaleString() + ' (MAX)'
+          : state.xp.toLocaleString() + ' / ' + nextThreshold.toLocaleString();
+
+      document.getElementById('statDiamonds').textContent = state.diamonds.toLocaleString();
+      document.getElementById('statLikes').textContent = state.likes.toLocaleString();
+      document.getElementById('statFollows').textContent = state.follows.toLocaleString();
+      document.getElementById('statShares').textContent = state.shares.toLocaleString();
+
+      const stageArea = document.getElementById('stageArea');
+      stageArea.className = 'stage-area';
+      const colorClass = (type === 'wolf' && line === 'shadow')
+        ? 'line-wolf-shadow'
+        : (LINE_COLORS[line] || 'line-ice');
+      stageArea.classList.add(colorClass);
+
+      document.getElementById('creatureType').value = state.type;
+      document.getElementById('creatureLine').value = state.line;
+    }
+
+    function triggerAnim(type) {
+      const el = document.getElementById('creatureImg');
+      el.classList.remove(
+        'pulse', 'glow', 'evolve', 'hatch', 'crack',
+        'wiggle', 'shine', 'play', 'pounce', 'fly', 'bright'
+      );
+      void el.offsetWidth;
+      el.classList.add(type);
+      setTimeout(() => el.classList.remove(type), 1800);
+    }
+
+    function spawnParticles(count = 12) {
+      const container = document.getElementById('particles');
+      const colors = ['#a8e6ff', '#9b6bff', '#ff6b4a', '#ffd700', '#ffffff', '#ff6b9d'];
+      for (let i = 0; i < count; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
+        const dist = 80 + Math.random() * 120;
+        p.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+        p.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+        p.style.left = '50%';
+        p.style.top = '50%';
+        p.style.background = colors[Math.floor(Math.random() * colors.length)];
+        p.style.animationDelay = (Math.random() * 0.25) + 's';
+        container.appendChild(p);
+        setTimeout(() => p.remove(), 1600);
+      }
+    }
+
+    function saveState() {
+      // Save entire multi-viewer map so progress survives across streams
+      localStorage.setItem('creatureLiveV2_multi', JSON.stringify({
+        creatures: creatures,
+        currentUser: currentUser
+      }));
+    }
+    function loadState() {
+      try {
+        const raw = localStorage.getItem('creatureLiveV2_multi');
+        if (raw) {
+          const saved = JSON.parse(raw);
+          creatures = saved.creatures || {};
+          // Don't auto-show on load – wait for a live interaction
+          currentUser = null;
+          state = newCreature('Host');
+        } else {
+          // Migrate old single-creature save if present
+          const old = localStorage.getItem('creatureLiveV2') || localStorage.getItem('creatureLiveV1');
+          if (old) {
+            const s = JSON.parse(old);
+            creatures['Host'] = Object.assign(newCreature('Host'), s);
+          }
+        }
+      } catch (e) {}
+    }
+
+    function toggleOverlay() {
+      const on = document.getElementById('overlayToggle').checked;
+      document.body.classList.toggle('overlay', on);
+      log('info', on ? 'Overlay mode ON – transparent for OBS' : 'Overlay mode OFF');
+    }
+
+    function connectWS() {
+      const url = document.getElementById('wsUrl').value.trim();
+      if (!url) {
+        alert('Paste the TikFinity WebSocket URL first.');
+        return;
+      }
+      if (ws) disconnectWS();
+
+      try {
+        ws = new WebSocket(url);
+        setWSStatus('connecting', 'Connecting…');
+
+        ws.onopen = () => {
+          setWSStatus('connected', 'Connected');
+          log('info', 'TikFinity WebSocket connected');
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            handleTikFinityEvent(data);
+          } catch (e) {
+            log('info', 'Received non-JSON message');
+          }
+        };
+
+        ws.onclose = () => {
+          setWSStatus('disconnected', 'Disconnected');
+          log('info', 'WebSocket closed');
+          ws = null;
+        };
+
+        ws.onerror = () => {
+          setWSStatus('error', 'Error');
+          log('info', 'WebSocket error – check URL & TikFinity app');
+        };
+      } catch (e) {
+        setWSStatus('error', 'Invalid URL');
+        log('info', 'Failed to create WebSocket: ' + e.message);
+      }
+    }
+
+    function disconnectWS() {
+      if (ws) {
+        ws.close();
+        ws = null;
+      }
+      setWSStatus('disconnected', 'Disconnected');
+    }
+
+    function setWSStatus(cls, text) {
+      const el = document.getElementById('wsStatus');
+      el.className = 'ws-status ' + cls;
+      el.textContent = text;
+    }
+
+    function handleTikFinityEvent(data) {
+      const name = data.nickname || data.uniqueId || data.username || data.user?.uniqueId || data.user?.nickname || null;
+      const diamonds = data.coins || data.diamonds || data.diamondCount || data.gift?.diamond_count || 0;
+
+      // Any interaction with a known user activates their creature
+      if (name) {
+        activateUser(name);
+      }
+
+      if (diamonds > 0 || data.type === 'gift' || data.event === 'gift') {
+        addGift(Number(diamonds) || 1);
+        log('gift', (name || 'Someone') + ' sent ' + diamonds + ' diamonds');
+        return;
+      }
+      if (data.type === 'like' || data.event === 'like' || data.likeCount) {
+        addLike();
+        return;
+      }
+      if (data.type === 'follow' || data.event === 'follow') {
+        addFollow();
+        return;
+      }
+      if (data.type === 'share' || data.event === 'share') {
+        addShare();
+        return;
+      }
+      // Chat message or join also keeps them active
+      if (data.type === 'chat' || data.event === 'chat' || data.type === 'member' || data.event === 'member') {
+        if (name) log('info', '@' + name + ' is active');
+        return;
+      }
+      log('info', 'Event: ' + (data.type || data.event || JSON.stringify(data).slice(0, 60)));
+    }
+
+    function log(type, msg) {
+      const box = document.getElementById('logBox');
+      const time = new Date().toLocaleTimeString();
+      const line = document.createElement('div');
+      line.className = 'log-' + type;
+      line.textContent = '[' + time + '] ' + msg;
+      box.prepend(line);
+      while (box.children.length > 40) box.removeChild(box.lastChild);
+    }
+
+    init();
+  </script>
+</body>
+</html>
